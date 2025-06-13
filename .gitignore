@@ -17,6 +17,7 @@ venv.bak/
 *.sqlite
 *.sqlite3
 pomo_hub.db
+data/
 
 # ログファイル
 *.log

@@ -42,6 +42,7 @@ pomo-hub/
 
 ### 1. 環境変数の設定
 
+**バックエンド:**
 ```bash
 cp backend/.env.example backend/.env
 ```
@@ -57,6 +58,24 @@ VAULT_PATH=/path/to/your/obsidian/vault
 
 # OpenAI API Key（オプション - 日報のGPT要約用）
 OPENAI_API_KEY=your_openai_api_key_here
+```
+
+**フロントエンド:**
+```bash
+cp frontend/.env.example frontend/.env
+```
+
+本番環境では、フロントエンドの環境変数を設定してください：
+
+```env
+# バックエンドAPIのURL
+VITE_API_URL=http://localhost:5001
+```
+
+本番環境の場合は`.env.production`ファイルを作成：
+
+```env
+VITE_API_URL=https://your-backend-url.com
 ```
 
 ### 2. Docker環境での起動
