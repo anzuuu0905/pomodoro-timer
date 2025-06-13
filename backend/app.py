@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import os
 import sqlite3
 import os
 from datetime import datetime, timedelta
@@ -11,7 +12,15 @@ from models import (init_db, add_pomodoro, update_pomodoro, add_task, update_tas
                     add_category, get_categories, add_task_template, get_task_templates, deactivate_task_template)
 
 app = Flask(__name__)
-CORS(app)
+
+# 本番環境対応のCORS設定
+if os.getenv('FLASK_ENV') == 'production':
+    # 本番環境ではフロントエンドのURLのみ許可
+    frontend_url = os.getenv('FRONTEND_URL', 'http://localhost')
+    CORS(app, origins=[frontend_url])
+else:
+    # 開発環境では全てのオリジンを許可
+    CORS(app)
 
 # データベースの初期化
 init_db()
@@ -413,4 +422,5 @@ def health_check():
     return jsonify({'status': 'ok', 'timestamp': datetime.now().isoformat()})
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5001)
+    port = int(os.environ.get('PORT', 5001))
+    app.run(host='0.0.0.0', port=port)
