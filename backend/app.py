@@ -23,6 +23,77 @@ scheduler.start()
 # Discord Webhook URL
 DISCORD_WEBHOOK_URL = os.getenv('DISCORD_WEBHOOK_URL', '')
 
+@app.route('/api/export/data', methods=['GET'])
+def export_data():
+    """データエクスポート"""
+    export_format = request.args.get('format', 'json')  # json, csv, markdown
+    export_date = request.args.get('date', None)  # YYYY-MM-DD形式
+    
+    try:
+        from models import get_pomodoros_by_date, get_tasks_by_date, get_all_notes_by_date
+        from datetime import date
+        
+        target_date = date.fromisoformat(export_date) if export_date else date.today()
+        
+        # データ取得
+        pomodoros = get_pomodoros_by_date(target_date)
+        tasks = get_tasks_by_date(target_date)
+        notes = get_all_notes_by_date(target_date)
+        
+        if export_format == 'json':
+            return jsonify({
+                'success': True,
+                'date': str(target_date),
+                'data': {
+                    'pomodoros': [dict(p) for p in pomodoros],
+                    'tasks': [dict(t) for t in tasks],
+                    'notes': [dict(n) for n in notes]
+                }
+            })
+        
+        elif export_format == 'csv':
+            import csv
+            import io
+            
+            output = io.StringIO()
+            
+            # ポモドーロデータのみ
+            output.write("ID,開始時刻,終了時刻,完了\n")
+            for p in pomodoros:
+                output.write(f"{p['id']},{p['start_at']},{p['end_at'] or '未完了'},{p['completed']}\n")
+            
+            return output.getvalue(), 200, {'Content-Type': 'text/csv; charset=utf-8'}
+        
+        elif export_format == 'markdown':
+            md_content = f"# 作業記録 - {target_date}\n\n"
+            
+            md_content += "## ポモドーロ記録\n\n"
+            if pomodoros:
+                for p in pomodoros:
+                    duration = "25分完了" if p['completed'] else "未完了"
+                    md_content += f"- {p['start_at'][:16]} - {duration}\n"
+            else:
+                md_content += "記録なし\n"
+            
+            md_content += "\n## タスク記録\n\n"
+            if tasks:
+                for t in tasks:
+                    status = "完了" if t['status'] == 'completed' else "進行中"
+                    md_content += f"- **{t['name']}** ({status})\n"
+                    md_content += f"  - 開始: {t['start_at'][:16]}\n"
+                    if t['end_at']:
+                        md_content += f"  - 終了: {t['end_at'][:16]}\n"
+            else:
+                md_content += "記録なし\n"
+            
+            return md_content, 200, {'Content-Type': 'text/markdown; charset=utf-8'}
+        
+        else:
+            return jsonify({'success': False, 'message': '無効なフォーマットです'}), 400
+            
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 def send_discord_notification(message):
     """Discord Webhookに通知を送信"""
     if not DISCORD_WEBHOOK_URL:

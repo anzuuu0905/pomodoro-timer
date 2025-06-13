@@ -4,6 +4,7 @@ import PomodoroTimer from './components/PomodoroTimer';
 import TaskManager from './components/TaskManager';
 import TodaySummary from './components/TodaySummary';
 import TaskTemplates from './components/TaskTemplates';
+import DataExport from './components/DataExport';
 
 function App() {
   return (
@@ -42,9 +43,14 @@ function App() {
           </div>
 
           {/* 今日のサマリー */}
-          <div className="lg:col-span-2 xl:col-span-3">
+          <div className="lg:col-span-2">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">今日の記録</h2>
             <TodaySummary />
+          </div>
+
+          {/* データエクスポート */}
+          <div className="xl:col-span-1">
+            <DataExport />
           </div>
         </div>
       </main>
