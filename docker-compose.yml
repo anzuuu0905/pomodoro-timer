@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  # フロントエンド (React + Vite)
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - api
+    command: npm run dev
+
+  # バックエンド (Python + Flask)
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+      - ./backend/pomo_hub.db:/app/pomo_hub.db
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=True
+      - PYTHONPATH=/app
+    env_file:
+      - ./backend/.env
+    command: python app.py
+
+volumes:
+  node_modules:

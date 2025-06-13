@@ -5,12 +5,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Development Preferences
 
 - When presented with multiple options (1, 2, 3, etc.), automatically choose option 1 and proceed without asking for confirmation
+- When multiple design approaches are possible, implement the first/simplest solution without asking
+- When user requests changes or new features, implement them directly without presenting options
 - Prioritize speed and efficiency over asking for clarification
 - Default to creating new projects as Node.js/JavaScript unless specified otherwise
 - Always run linting and type checking after making code changes
 - Use TypeScript by default for new JavaScript projects
 - Prefer functional programming patterns and modern ES6+ syntax
 - Use async/await instead of promises when possible
+- For UI/UX decisions, implement a clean and simple design without asking for preferences
 
 ## Code Style and Standards
 
