@@ -57,3 +57,11 @@ This is a new, empty repository. When starting development:
 - Set up TypeScript configuration
 - Install development dependencies (ESLint, Prettier, Jest)
 - Create standard project structure (src/, tests/, docs/)
+
+### Notification Rules
+
+When working with Claude Code, use notifications to inform the user:
+- **When prompting for user input**: Execute `~/scripts/notify-discord.sh "Claude Code" "ユーザーの入力が必要です"`
+- **When showing selection options (1,2,3...)**: Execute `~/scripts/notify-discord.sh "Claude Code" "選択肢の入力が必要です"`
+- **When task is completed**: Execute `~/scripts/notify-discord.sh "Claude Code" "タスクが完了しました"`
+- **When error occurs**: Execute `~/scripts/notify-discord.sh "Claude Code Error" "エラーが発生しました"`

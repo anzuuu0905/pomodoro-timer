@@ -7,9 +7,17 @@ from datetime import datetime, timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
 import requests
 import json
-from models import (init_db, add_pomodoro, update_pomodoro, add_task, update_task, 
-                    add_note, get_today_pomodoros, get_today_tasks, get_task_notes, get_active_task,
-                    add_category, get_categories, add_task_template, get_task_templates, deactivate_task_template)
+# Cloud Run環境かどうかを判定
+if os.getenv('K_SERVICE'):
+    # Cloud Run環境ではFirestoreを使用
+    from firestore_models import (init_db, add_pomodoro, update_pomodoro, add_task, update_task, 
+                        add_note, get_today_pomodoros, get_today_tasks, get_task_notes, get_active_task,
+                        add_category, get_categories, add_task_template, get_task_templates, deactivate_task_template)
+else:
+    # ローカル環境ではSQLiteを使用
+    from models import (init_db, add_pomodoro, update_pomodoro, add_task, update_task, 
+                        add_note, get_today_pomodoros, get_today_tasks, get_task_notes, get_active_task,
+                        add_category, get_categories, add_task_template, get_task_templates, deactivate_task_template)
 
 app = Flask(__name__)
 
@@ -39,7 +47,11 @@ def export_data():
     export_date = request.args.get('date', None)  # YYYY-MM-DD形式
     
     try:
-        from models import get_pomodoros_by_date, get_tasks_by_date, get_all_notes_by_date
+        # Cloud Run環境かどうかを判定してインポート
+        if os.getenv('K_SERVICE'):
+            from firestore_models import get_pomodoros_by_date, get_tasks_by_date, get_all_notes_by_date
+        else:
+            from models import get_pomodoros_by_date, get_tasks_by_date, get_all_notes_by_date
         from datetime import date
         
         target_date = date.fromisoformat(export_date) if export_date else date.today()
@@ -389,27 +401,36 @@ def get_today_summary():
             'tasks': []
         }
         
-        # ポモドーロ情報
-        for pomo in pomodoros:
-            pomo_data = {
-                'id': pomo[0],
-                'start_at': pomo[1],
-                'end_at': pomo[2],
-                'completed': pomo[3]
-            }
-            summary['pomodoros'].append(pomo_data)
-        
-        # タスク情報
-        for task in tasks:
-            task_data = {
-                'id': task[0],
-                'name': task[1],
-                'start_at': task[2],
-                'end_at': task[3],
-                'status': task[4],
-                'notes': get_task_notes(task[0])
-            }
-            summary['tasks'].append(task_data)
+        # Cloud Run環境（Firestore）とローカル環境（SQLite）で処理を分岐
+        if os.getenv('K_SERVICE'):
+            # Firestore: 辞書形式のデータ
+            summary['pomodoros'] = pomodoros
+            
+            # タスク情報とメモを結合
+            for task in tasks:
+                task['notes'] = get_task_notes(task['id'])
+            summary['tasks'] = tasks
+        else:
+            # SQLite: タプル形式のデータ
+            for pomo in pomodoros:
+                pomo_data = {
+                    'id': pomo[0],
+                    'start_at': pomo[1],
+                    'end_at': pomo[2],
+                    'completed': pomo[3]
+                }
+                summary['pomodoros'].append(pomo_data)
+            
+            for task in tasks:
+                task_data = {
+                    'id': task[0],
+                    'name': task[1],
+                    'start_at': task[2],
+                    'end_at': task[3],
+                    'status': task[4],
+                    'notes': get_task_notes(task[0])
+                }
+                summary['tasks'].append(task_data)
         
         return jsonify(summary)
         
