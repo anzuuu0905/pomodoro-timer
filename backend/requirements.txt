@@ -4,3 +4,5 @@ APScheduler==3.10.4
 requests==2.31.0
 openai==0.28.1
 gunicorn==21.2.0
+firebase-admin==6.1.0
+google-cloud-firestore==2.11.1
